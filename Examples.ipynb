@@ -1,0 +1,91 @@
+{
+ "cells": [
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "b9edcdae-24a1-45fc-ad0f-191bf4e026f6",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "#ООП задание 3\n",
+    "\n",
+    "import re\n",
+    "import time\n",
+    "import requests\n",
+    "from bs4 import BeautifulSoup\n",
+    "from transformers import AutoTokenizer\n",
+    "import nltk\n",
+    "from nltk.tokenize import word_tokenize\n",
+    "\n",
+    "url = 'https://www.gutenberg.org/files/4300/4300-h/4300-h.htm#chap01'\n",
+    "\n",
+    "def load_and_clean_text(url):\n",
+    "    response = requests.get(url)\n",
+    "    soup = BeautifulSoup(response.content, 'html.parser')\n",
+    "\n",
+    "    text_elements = soup.find_all(['h1', 'h2', 'p'])\n",
+    "    text = '\\n'.join([element.get_text() for element in text_elements])\n",
+    "\n",
+    "    return text\n",
+    "\n",
+    "text = load_and_clean_text(url)\n",
+    "\n",
+    "nltk.download('punkt')\n",
+    "\n",
+    "def tokenize_with_re_split(text):\n",
+    "    return re.split(r'\\W+', text.lower())\n",
+    "\n",
+    "def tokenize_with_nltk(text):\n",
+    "    return word_tokenize(text)\n",
+    "\n",
+    "def tokenize_with_transformers(text):\n",
+    "    tokenizer = AutoTokenizer.from_pretrained(\"bert-base-uncased\")\n",
+    "    return tokenizer.tokenize(text)\n",
+    "\n",
+    "start_time = time.time()\n",
+    "tokens_re = tokenize_with_re_split(text)\n",
+    "time_re = time.time() - start_time\n",
+    "unique_tokens_re = set(tokens_re)\n",
+    "\n",
+    "start_time = time.time()\n",
+    "tokens_nltk = tokenize_with_nltk(text)\n",
+    "time_nltk = time.time() - start_time\n",
+    "unique_tokens_nltk = set(token.lower() for token in tokens_nltk)\n",
+    "\n",
+    "start_time = time.time()\n",
+    "tokens_transformers = tokenize_with_transformers(text)\n",
+    "time_transformers = time.time() - start_time\n",
+    "unique_tokens_transformers = set(tokens_transformers)\n",
+    "\n",
+    "print(f\"Время re.split: {time_re:.4f} секунд, уникальных токенов: {len(unique_tokens_re)}\")\n",
+    "print(f\"Время nltk: {time_nltk:.4f} секунд, уникальных токенов: {len(unique_tokens_nltk)}\")\n",
+    "print(f\"Время transformers: {time_transformers:.4f} секунд, уникальных токенов: {len(unique_tokens_transformers)}\")\n",
+    "\n",
+    "print(f\"Уникальные токены re.split: {unique_tokens_re - unique_tokens_nltk - unique_tokens_transformers}\")\n",
+    "print(f\"Уникальные токены nltk: {unique_tokens_nltk - unique_tokens_re - unique_tokens_transformers}\")\n",
+    "print(f\"Уникальные токены transformers: {unique_tokens_transformers - unique_tokens_re - unique_tokens_nltk}\")"
+   ]
+  }
+ ],
+ "metadata": {
+  "kernelspec": {
+   "display_name": "Python 3 (ipykernel)",
+   "language": "python",
+   "name": "python3"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.12.7"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 5
+}
